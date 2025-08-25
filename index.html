@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <title>ダムウォッチ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bd:#e5e7eb; --fg:#111827; --muted:#6b7280; --chip:#f3f4f6; --bg:#ffffff;
+      --green:#10b981; --yellow:#f59e0b; --orange:#f97316; --red:#ef4444; --gray:#9ca3af; --blue:#2563eb;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);margin:0}
+    header{padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .filters label{font-size:12px;color:var(--muted)}
+    .chip{background:var(--chip);border:1px solid var(--bd);border-radius:999px;padding:6px 8px;display:inline-flex;gap:6px;align-items:center}
+    select, input[type="number"], input[type="text"]{padding:6px 8px;border:1px solid var(--bd);border-radius:8px}
+    fieldset{border:1px solid var(--bd);border-radius:8px;padding:6px 8px}
+    legend{font-size:12px;color:var(--muted);padding:0 6px}
+    #main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
+    #map{height:520px;border:1px solid var(--bd);border-radius:12px}
+    #list{max-height:520px;overflow:auto;border:1px solid var(--bd);border-radius:12px;padding:8px;position:relative}
+    .item{border-bottom:1px solid #f3f4f6;padding:8px 4px}
+    .item h4{margin:0 0 4px 0;font-size:14px}
+    .meta{font-size:12px;color:var(--muted)}
+    .badge{display:inline-block;border-radius:6px;padding:2px 6px;font-size:11px;border:1px solid var(--bd);background:#fff;margin-left:6px}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .row-line{display:flex;align-items:center;gap:12px;justify-content:space-between}
+    #detail{padding:12px;border-top:1px solid var(--bd)}
+    #chart{max-width:100%;border:1px solid var(--bd);border-radius:12px;padding:8px}
+    .btn{padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:#fff;cursor:pointer}
+    .btn:hover{background:#f9fafb}
+    .mini{width:240px;height:42px;border:1px solid var(--bd);border-radius:8px;display:block;background:#fff}
+    .btn-chip{border-radius:999px;padding:6px 10px;border:1px solid var(--bd);background:#fff;cursor:pointer}
+    .btn-chip.active{background:#111827;color:#fff;border-color:#111827}
+    footer{padding:12px;border-top:1px solid var(--bd);font-size:12px;color:var(--muted)}
+    /* ミニツールチップ */
+    #mini-tip{
+      position:fixed; z-index:9999; pointer-events:none;
+      background:#111827; color:#fff; font-size:12px; padding:4px 6px; border-radius:6px;
+      box-shadow:0 4px 12px rgba(0,0,0,0.15); transform:translate(-50%, -130%); white-space:nowrap; display:none;
+    }
+  </style>
+  <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+</head>
+<body>
+<header>
+  <div class="filters">
+    <input id="q" placeholder="ダム名/河川名 検索" class="chip" style="min-width:220px;" />
+    <label class="chip">都道府県
+      <select id="pref" multiple size="5" style="min-width:140px;margin-left:6px;"></select>
+    </label>
+    <label class="chip">貯水率(%) 
+      <input id="rate_min" type="number" min="0" max="100" value="0" style="width:70px;margin-left:6px;">〜
+      <input id="rate_max" type="number" min="0" max="100" value="100" style="width:70px;">
+    </label>
+    <fieldset class="chip" id="ops" style="border:none">
+      <legend>管理体制</legend>
+      <label><input type="checkbox" value="国" checked> 国</label>
+      <label><input type="checkbox" value="自治体" checked> 自治体</label>
+      <label><input type="checkbox" value="水資源機構" checked> 水資源機構</label>
+      <label><input type="checkbox" value="民間" checked> 民間</label>
+    </fieldset>
+    <label class="chip"><input id="in_bbox" type="checkbox"> 地図で絞り込む</label>
+    <fieldset class="chip" style="border:none">
+      <legend>上昇/下降</legend>
+      <label><input id="rising" type="checkbox"> 直近上昇</label>
+      <label><input id="falling" type="checkbox"> 直近日下降</label>
+      <label>24h |Δ| ≥ <input id="delta24_abs" type="number" value="0" min="0" step="0.5" style="width:70px;"> %</label>
+    </fieldset>
+    <button id="reset" class="btn">条件リセット</button>
+    <!-- クイックフィルタ -->
+    <div class="row" style="margin-left:8px;">
+      <button class="btn-chip" id="q-low"   title="貯水率 < 40%">低水位</button>
+      <button class="btn-chip" id="q-rise"  title="24hΔ ≥ +2%">上昇</button>
+      <button class="btn-chip" id="q-fall"  title="24hΔ ≤ -2%">下降</button>
+    </div>
+  </div>
+</header>
+
+<div id="main">
+  <div id="map"></div>
+  <div>
+    <div class="row" style="justify-content:space-between;margin:0 0 6px 0">
+      <div class="meta" id="summary">読み込み中…</div>
+      <div class="row">
+        <label class="chip">並び替え
+          <select id="sort" style="margin-left:6px;">
+            <option value="rate_asc">貯水率 低い → 高い</option>
+            <option value="rate_desc">貯水率 高い → 低い</option>
+            <option value="delta_desc">24h変化 大きい順</option>
+            <option value="updated_desc">更新 新しい順</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div id="detail">
+  <h3 id="detail-title">推移</h3>
+  <canvas id="chart" height="160"></canvas>
+</div>
+
+<footer>
+  出典：各自治体の公開データ／オープンデータ等（サイト規約順守）。地図タイル：国土地理院。<br/>
+  表示は参考値です。観測・取得時刻のずれや欠測に注意してください。
+</footer>
+
+<!-- ミニツールチップ（スパークライン用） -->
+<div id="mini-tip"></div>
+
+<!-- ライブラリ -->
+<script src="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.js"></script>
+<!-- Chart.js を安定版(UMD)に固定 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+let INDEX = [];
+let map, bbox = null, chart;
+
+// クイックフィルタの状態
+const quick = { low:false, rise:false, fall:false };
+
+// ---------- データ読み込み ----------
+async function loadIndex(){
+  const res = await fetch('./data/dams_index.json', {cache:'no-cache'});
+  if(!res.ok){ document.getElementById('summary').textContent = 'dams_index.json が読み込めません'; return; }
+  INDEX = await res.json();
+}
+
+function initPrefOptions(){
+  const prefs = [...new Set(INDEX.map(x=>x.pref))].sort();
+  const sel = document.getElementById('pref');
+  sel.innerHTML = prefs.map(p=>`<option value="${p}">${p}</option>`).join('');
+}
+
+// ---------- フィルタ ----------
+function getFilters(){
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const pref = Array.from(document.getElementById('pref').selectedOptions).map(o=>o.value);
+  const rateMin = +document.getElementById('rate_min').value || 0;
+  const rateMax = +document.getElementById('rate_max').value || 100;
+  const inBbox = document.getElementById('in_bbox').checked;
+  const rising = document.getElementById('rising').checked || quick.rise;
+  const falling = document.getElementById('falling').checked || quick.fall;
+  const delta24_abs = +document.getElementById('delta24_abs').value || 0;
+
+  const opsChecked = Array.from(document.querySelectorAll('#ops input[type="checkbox"]'))
+    .filter(i => i.checked)
+    .map(i=>i.value);
+
+  return { q, pref, rateMin, rateMax, inBbox, rising, falling, delta24_abs, opsChecked };
+}
+
+function applyFilters(rows, f){
+  let r = rows.slice();
+  if (f.pref.length) r = r.filter(x => f.pref.includes(x.pref));
+  r = r.filter(x => typeof x.rate_pct==='number' && x.rate_pct>=f.rateMin && x.rate_pct<=f.rateMax);
+  if (f.opsChecked.length) r = r.filter(x => f.opsChecked.includes(x.operator_group));
+  if (quick.low) r = r.filter(x => (x.rate_pct ?? 101) < 40);
+  if (f.rising)  r = r.filter(x => (x.delta_pct_24h ?? x.delta_pct_last ?? 0) >= 2);
+  if (f.falling) r = r.filter(x => (x.delta_pct_24h ?? x.delta_pct_last ?? 0) <= -2);
+  if (f.delta24_abs > 0) r = r.filter(x => Math.abs(x.delta_pct_24h ?? 0) >= f.delta24_abs);
+  if (f.q) r = r.filter(x => (x.name||'').toLowerCase().includes(f.q) || (x.river||'').toLowerCase().includes(f.q));
+  if (f.inBbox && bbox){
+    const [minX,minY,maxX,maxY] = bbox;
+    r = r.filter(x => x.lon>=minX && x.lon<=maxX && x.lat>=minY && x.lat<=maxY);
+  }
+  return r;
+}
+
+function sortRows(rows, key){
+  const r = rows.slice();
+  if (key==='rate_asc') r.sort((a,b)=>(a.rate_pct??999)-(b.rate_pct??999));
+  if (key==='rate_desc') r.sort((a,b)=>(b.rate_pct??-999)-(a.rate_pct??-999));
+  if (key==='delta_desc') r.sort((a,b)=>(Math.abs(b.delta_pct_24h??0))-(Math.abs(a.delta_pct_24h??0)));
+  if (key==='updated_desc') r.sort((a,b)=> new Date(b.updated_at) - new Date(a.updated_at));
+  return r;
+}
+
+// ---------- リスト（左テキスト／右ミニグラフ） ----------
+function renderList(rows){
+  const el = document.getElementById('list');
+  const sortKey = document.getElementById('sort').value;
+  const sorted = sortRows(rows, sortKey);
+
+  document.getElementById('summary').textContent = `表示件数: ${sorted.length} / 総数: ${INDEX.length}`;
+
+  el.innerHTML = sorted.slice(0, 400).map(x => `
+    <div class="item">
+      <div class="row-line">
+        <div>
+          <h4 style="margin:0">
+            ${x.name}
+            <span class="badge">${x.pref}</span>
+            <span class="badge">${x.operator_group}</span>
+          </h4>
+          <div class="meta">
+            貯水率: <b>${x.rate_pct ?? '-'}</b>%　
+            24hΔ: <b>${x.delta_pct_24h ?? '-'}</b>%　
+            更新: ${x.updated_at ?? '-'}
+          </div>
+          <div class="row" style="margin-top:6px">
+            <button class="btn" onclick="openDetail('${x.dam_id}','${x.name}')">詳細グラフ</button>
+            <button class="btn" onclick="flyTo(${x.lon},${x.lat})">地図で見る</button>
+          </div>
+        </div>
+        <canvas class="mini" width="240" height="42" data-damid="${x.dam_id}" title="直近の推移"></canvas>
+      </div>
+    </div>
+  `).join('');
+
+  updateMapMarkers(sorted);
+  setupMiniObserver(); // 可視行から順にミニグラフ描画
+}
+
+// ---------- 詳細グラフ ----------
+async function openDetail(damId, name){
+  document.getElementById('detail-title').textContent = `推移：${name}`;
+  const url = `./data/history/${damId}.ndjson`;
+  const res = await fetch(url, {cache:'no-cache'});
+  if(!res.ok){ alert('履歴がありません'); return; }
+  const text = await res.text();
+  const rows = text.trim().split("\n").map(l=>JSON.parse(l));
+  rows.sort((a,b)=> new Date(a.observed_at) - new Date(b.observed_at));
+  const labels = rows.map(r=> r.observed_at);
+  const data = rows.map(r=> r.rate_pct ?? null);
+
+  if(chart) chart.destroy();
+  const ctx = document.getElementById('chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ label: '貯水率(%)', data, spanGaps: true }] },
+    options: {
+      interaction: { mode: 'nearest', intersect: false },
+      scales: { y: { suggestedMin: 0, suggestedMax: 100 } }
+    }
+  });
+}
+
+// ---------- 地図 ----------
+function initMap(){
+  map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      "version": 8,
+      "sources": {
+        "gsi": {
+          "type": "raster",
+          "tiles": ["https://cyberjapandata.gsi.go.jp/xyz/std/{z}/{x}/{y}.png"],
+          "tileSize": 256,
+          "attribution": "地図:国土地理院"
+        }
+      },
+      "layers": [{"id":"gsi","type":"raster","source":"gsi"}]
+    },
+    center: [139.6917,35.6895], zoom: 4.5
+  });
+
+  map.on('load', ()=>{
+    map.addSource('dams', { type:'geojson', data:{ type:'FeatureCollection', features:[] }});
+    map.addLayer({
+      id:'dams-circle',
+      type:'circle',
+      source:'dams',
+      paint:{
+        'circle-radius': 5,
+        'circle-color': ['case',
+          ['has','rate'],
+          ['interpolate',['linear'], ['get','rate'],
+            0,'#ef4444', 40,'#ef4444', 60,'#f97316', 80,'#f59e0b', 100,'#10b981'
+          ],
+          '#9ca3af'
+        ],
+        'circle-stroke-color':'#334155','circle-stroke-width': 0.5
+      }
+    });
+    map.on('moveend', ()=>{
+      const b = map.getBounds();
+      bbox = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()];
+      if(document.getElementById('in_bbox').checked) render();
+    });
+    render(); // 初回
+  });
+
+  map.on('click','dams-circle',(e)=>{
+    const f = e.features[0];
+    openDetail(f.properties.dam_id, f.properties.name);
+  });
+}
+
+function updateMapMarkers(rows){
+  if (!map || !map.getSource('dams')) return;
+  const features = rows.map(x=> ({
+    type:'Feature',
+    geometry:{ type:'Point', coordinates:[x.lon, x.lat] },
+    properties:{ dam_id:x.dam_id, name:x.name, rate:x.rate_pct }
+  }));
+  map.getSource('dams').setData({ type:'FeatureCollection', features });
+}
+
+function flyTo(lon,lat){ map.flyTo({ center:[lon,lat], zoom: 10 }); }
+
+// ---------- ミニグラフ（色分け・ツールチップ・遅延描画） ----------
+const historyCache = new Map(); // dam_id -> [{t:Date, y:number}, ...]
+let miniObserver;
+const tip = document.getElementById('mini-tip');
+
+function setupMiniObserver(){
+  if (miniObserver) miniObserver.disconnect();
+  miniObserver = new IntersectionObserver(entries=>{
+    for(const e of entries){
+      if(e.isIntersecting){
+        const cv = e.target;
+        const damId = cv.dataset.damid;
+        drawMiniFor(damId, cv);
+        miniObserver.unobserve(cv);
+      }
+    }
+  }, {root: document.getElementById('list'), threshold: 0.1});
+  document.querySelectorAll('canvas.mini').forEach(cv => miniObserver.observe(cv));
+}
+
+async function drawMiniFor(damId, canvas){
+  if(!historyCache.has(damId)){
+    try{
+      const url = `./data/history/${damId}.ndjson`;
+      const res = await fetch(url, {cache:'no-cache'});
+      if(!res.ok){ return; }
+      const text = await res.text();
+      const rows = text.trim().split("\n").map(l=>JSON.parse(l))
+        .filter(r => typeof r.rate_pct === 'number')
+        .sort((a,b)=> new Date(a.observed_at) - new Date(b.observed_at));
+      const N = 30;
+      const tail = rows.slice(-N).map(r=>({ t:new Date(r.observed_at), y:r.rate_pct }));
+      historyCache.set(damId, tail);
+    }catch(e){ console.warn('mini fetch failed', damId, e); return; }
+  }
+  const series = historyCache.get(damId);
+  if(!series || series.length===0) return;
+  sparkline(canvas, series);
+  attachMiniTooltip(canvas, series);
+}
+
+// 線色を貯水率で変える（最新値で判定）
+function colorByLevel(p){
+  if (p==null) return '#9ca3af';
+  if (p<40) return '#ef4444';
+  if (p<60) return '#f97316';
+  if (p<80) return '#f59e0b';
+  return '#10b981';
+}
+
+// スパークライン描画（series = [{t:Date, y:number}...])
+function sparkline(canvas, series){
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const ys = series.map(p=>p.y).filter(v=>typeof v==='number');
+  if(ys.length===0) return;
+
+  const ymin = Math.min(...ys), ymax = Math.max(...ys);
+  const pad = 4;
+  const xStep = (W - pad*2) / Math.max(1, series.length - 1);
+  const yScale = (H - pad*2) / (ymax - ymin || 1);
+
+  // 補助線（中央値）
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+
+  // 線（色分け）
+  const last = series[series.length-1]?.y ?? null;
+  const stroke = colorByLevel(last);
+
+  ctx.lineWidth = 1.6;
+  ctx.strokeStyle = stroke;
+  ctx.beginPath();
+  series.forEach((p,i)=>{
+    const x = pad + i * xStep;
+    const y = H - pad - (p.y - ymin) * yScale;
+    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // 直近点
+  const xL = pad + (series.length-1)*xStep;
+  const yL = H - pad - (last - ymin) * yScale;
+  ctx.fillStyle = stroke;
+  ctx.beginPath(); ctx.arc(xL,yL,2.6,0,Math.PI*2); ctx.fill();
+
+  // キャンバスに座標変換情報を保存（ツールチップ用）
+  canvas._spark = { pad, xStep, ymin, ymax, yScale, series };
+}
+
+// ツールチップ（最寄り点）
+function attachMiniTooltip(canvas, series){
+  canvas.onmousemove = (ev)=>{
+    if(!canvas._spark) return;
+    const r = canvas.getBoundingClientRect();
+    const x = ev.clientX - r.left;
+    const { pad, xStep } = canvas._spark;
+    const idx = Math.max(0, Math.min(series.length-1, Math.round((x - pad)/xStep)));
+    const p = series[idx];
+    if(!p) return;
+
+    tip.style.display = 'block';
+    tip.textContent = `${p.t.toLocaleString()} / ${p.y.toFixed(1)}%`;
+    tip.style.left = `${ev.clientX}px`;
+    tip.style.top  = `${ev.clientY}px`;
+  };
+  canvas.onmouseleave = ()=>{ tip.style.display = 'none'; };
+}
+
+// ---------- イベント & レンダリング ----------
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+
+function bindEvents(){
+  ['q','pref','rate_min','rate_max','in_bbox','rising','falling','delta24_abs','sort']
+    .forEach(id => document.getElementById(id).addEventListener('input', debounce(render, 200)));
+
+  document.getElementById('reset').addEventListener('click', ()=>{
+    document.getElementById('q').value = '';
+    Array.from(document.getElementById('pref').options).forEach(o=>o.selected=false);
+    document.getElementById('rate_min').value = 0;
+    document.getElementById('rate_max').value = 100;
+    document.getElementById('in_bbox').checked = false;
+    document.getElementById('rising').checked = false;
+    document.getElementById('falling').checked = false;
+    document.getElementById('delta24_abs').value = 0;
+    quick.low = quick.rise = quick.fall = false;
+    document.querySelectorAll('.btn-chip').forEach(b=>b.classList.remove('active'));
+    render();
+  });
+
+  // クイックフィルタ
+  const qLow = document.getElementById('q-low');
+  const qRise = document.getElementById('q-rise');
+  const qFall = document.getElementById('q-fall');
+  qLow.onclick  = ()=>{ quick.low  = !quick.low;  qLow.classList.toggle('active');  render(); };
+  qRise.onclick = ()=>{ quick.rise = !quick.rise; qRise.classList.toggle('active'); render(); };
+  qFall.onclick = ()=>{ quick.fall = !quick.fall; qFall.classList.toggle('active'); render(); };
+}
+
+function render(){
+  const f = getFilters();
+  const rows = applyFilters(INDEX, f);
+  renderList(rows);
+}
+
+// ---------- 起動 ----------
+(async function start(){
+  await loadIndex();
+  initPrefOptions();
+  initMap();
+  bindEvents();
+})();
+</script>
+</body>
+</html>
