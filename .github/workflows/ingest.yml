@@ -1,0 +1,43 @@
+name: ingest-and-publish
+on:
+  schedule:
+    - cron: '5 21,3,9,14 * * *'   # UTC→JST 06:05 / 12:05 / 18:05 / 23:05
+  workflow_dispatch: {}            # 手動実行ボタン
+
+permissions:
+  contents: write                  # gh-pages への書き込み
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # 取得（今はサンプル。実データアダプタに差し替え可能）
+      - name: Fetch
+        run: python scripts/fetch_example.py
+
+      - name: Append history
+        run: python scripts/append_history.py
+
+      - name: Build index
+        run: python scripts/build_index.py
+
+      - name: Commit data
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@example.com"
+          git add public/data
+          git commit -m "update data" || echo "no changes"
+          git push
+
+      # public/ を gh-pages ブランチにデプロイ
+      - name: Publish to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./public
+          github_token: ${{ secrets.GITHUB_TOKEN }}
