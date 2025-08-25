@@ -1,0 +1,5 @@
+dam_id,name,pref,operator_group,lat,lon,observed_at,rate_pct,level_m
+miyagi_okura,大倉ダム,MIYAGI,自治体,38.34,140.67,2025-08-23T06:00:00+09:00,72.4,255.13
+miyagi_okura,大倉ダム,MIYAGI,自治体,38.34,140.67,2025-08-23T12:00:00+09:00,72.1,255.02
+miyagi_shichik,七北田ダム,MIYAGI,自治体,38.39,140.74,2025-08-23T06:00:00+09:00,65.0,245.80
+miyagi_shichik,七北田ダム,MIYAGI,自治体,38.39,140.74,2025-08-23T12:00:00+09:00,64.8,245.70

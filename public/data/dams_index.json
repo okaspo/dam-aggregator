@@ -1,0 +1,58 @@
+[
+  {
+    "dam_id": "miyagi_okura",
+    "name": "大倉ダム",
+    "pref": "MIYAGI",
+    "operator_group": "自治体",
+    "lat": 38.34,
+    "lon": 140.67,
+    "rate_pct": 72.4,
+    "level_m": 255.13,
+    "updated_at": "2025-08-23T06:00:00+09:00",
+    "delta_pct_last": -0.3,
+    "delta_pct_24h": -0.3,
+    "slope_pct_per_day": -0.3
+  },
+  {
+    "dam_id": "miyagi_okura",
+    "name": "大倉ダム",
+    "pref": "MIYAGI",
+    "operator_group": "自治体",
+    "lat": 38.34,
+    "lon": 140.67,
+    "rate_pct": 72.1,
+    "level_m": 255.02,
+    "updated_at": "2025-08-23T12:00:00+09:00",
+    "delta_pct_last": -0.3,
+    "delta_pct_24h": -0.3,
+    "slope_pct_per_day": -0.3
+  },
+  {
+    "dam_id": "miyagi_shichik",
+    "name": "七北田ダム",
+    "pref": "MIYAGI",
+    "operator_group": "自治体",
+    "lat": 38.39,
+    "lon": 140.74,
+    "rate_pct": 65.0,
+    "level_m": 245.8,
+    "updated_at": "2025-08-23T06:00:00+09:00",
+    "delta_pct_last": -0.2,
+    "delta_pct_24h": -0.2,
+    "slope_pct_per_day": -0.2
+  },
+  {
+    "dam_id": "miyagi_shichik",
+    "name": "七北田ダム",
+    "pref": "MIYAGI",
+    "operator_group": "自治体",
+    "lat": 38.39,
+    "lon": 140.74,
+    "rate_pct": 64.8,
+    "level_m": 245.7,
+    "updated_at": "2025-08-23T12:00:00+09:00",
+    "delta_pct_last": -0.2,
+    "delta_pct_24h": -0.2,
+    "slope_pct_per_day": -0.2
+  }
+]
