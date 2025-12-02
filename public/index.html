@@ -6,46 +6,426 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
-      --bd:#e5e7eb; --fg:#111827; --muted:#6b7280; --chip:#f3f4f6; --bg:#ffffff;
-      --green:#10b981; --yellow:#f59e0b; --orange:#f97316; --red:#ef4444; --gray:#9ca3af; --blue:#2563eb;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-light: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.95);
+      --bd: rgba(226, 232, 240, 0.8);
+      --fg: #1e293b;
+      --muted: #64748b;
+      --chip: rgba(248, 250, 252, 0.8);
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --orange: #f97316;
+      --red: #ef4444;
+      --gray: #94a3b8;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     }
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);margin:0}
-    header{padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .filters label{font-size:12px;color:var(--muted)}
-    .chip{background:var(--chip);border:1px solid var(--bd);border-radius:999px;padding:6px 8px;display:inline-flex;gap:6px;align-items:center}
-    select, input[type="number"], input[type="text"]{padding:6px 8px;border:1px solid var(--bd);border-radius:8px}
-    fieldset{border:1px solid var(--bd);border-radius:8px;padding:6px 8px}
-    legend{font-size:12px;color:var(--muted);padding:0 6px}
-    #main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
-    #map{height:520px;border:1px solid var(--bd);border-radius:12px}
-    #list{max-height:520px;overflow:auto;border:1px solid var(--bd);border-radius:12px;padding:8px;position:relative}
-    .item{border-bottom:1px solid #f3f4f6;padding:8px 4px}
-    .item h4{margin:0 0 4px 0;font-size:14px}
-    .meta{font-size:12px;color:var(--muted)}
-    .badge{display:inline-block;border-radius:6px;padding:2px 6px;font-size:11px;border:1px solid var(--bd);background:#fff;margin-left:6px}
-    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .row-line{display:flex;align-items:center;gap:12px;justify-content:space-between}
-    #detail{padding:12px;border-top:1px solid var(--bd)}
-    #chart{max-width:100%;border:1px solid var(--bd);border-radius:12px;padding:8px}
-    .btn{padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:#fff;cursor:pointer}
-    .btn:hover{background:#f9fafb}
-    .mini{width:240px;height:42px;border:1px solid var(--bd);border-radius:8px;display:block;background:#fff}
-    .btn-chip{border-radius:999px;padding:6px 10px;border:1px solid var(--bd);background:#fff;cursor:pointer}
-    .btn-chip.active{background:#111827;color:#fff;border-color:#111827}
-    footer{padding:12px;border-top:1px solid var(--bd);font-size:12px;color:var(--muted)}
-    /* ミニツールチップ */
-    #mini-tip{
-      position:fixed; z-index:9999; pointer-events:none;
-      background:#111827; color:#fff; font-size:12px; padding:4px 6px; border-radius:6px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.15); transform:translate(-50%, -130%); white-space:nowrap; display:none;
+
+    [data-theme="dark"] {
+      --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      --bg-light: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.95);
+      --bd: rgba(51, 65, 85, 0.8);
+      --fg: #f1f5f9;
+      --muted: #94a3b8;
+      --chip: rgba(30, 41, 59, 0.8);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg-light);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    /* ヘッダー - Glass Morphism */
+    header {
+      padding: 1rem 1.5rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--bd);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    [data-theme="dark"] .logo {
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ダークモードトグル */
+    .theme-toggle {
+      margin-left: auto;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      background: var(--chip);
+      border: 1px solid var(--bd);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow);
+    }
+
+    .filters {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filters label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* チップ - Glass Morphism */
+    .chip {
+      background: var(--chip);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--bd);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .chip:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    select, input[type="number"], input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      background: var(--bg-card);
+      color: var(--fg);
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    fieldset {
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--chip);
+    }
+
+    legend {
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 0 0.5rem;
+      font-weight: 500;
+    }
+
+    /* メインコンテンツ */
+    #main {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+      max-width: 1800px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1024px) {
+      #main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 地図 - カードスタイル */
+    #map {
+      height: 600px;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      background: var(--bg-card);
+      border: 1px solid var(--bd);
+    }
+
+    /* リスト - Glass Morphism */
+    #list {
+      max-height: 600px;
+      overflow: auto;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--bd);
+    }
+
+    #list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #list::-webkit-scrollbar-thumb {
+      background: var(--muted);
+      border-radius: 4px;
+    }
+
+    #list::-webkit-scrollbar-thumb:hover {
+      background: var(--purple);
+    }
+
+    /* ダムアイテム - モダンカード */
+    .item {
+      border-bottom: 1px solid var(--bd);
+      padding: 1rem 0.5rem;
+      transition: all 0.3s ease;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .item:hover {
+      background: var(--chip);
+      transform: translateX(4px);
+      box-shadow: var(--shadow);
+    }
+
+    .item h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--fg);
+    }
+
+    .meta {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--bd);
+      background: var(--bg-card);
+      margin-left: 0.5rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .row-line {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    /* 詳細セクション */
+    #detail {
+      padding: 1.5rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 1.5rem;
+      margin: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--bd);
+    }
+
+    #detail-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #chart {
+      max-width: 100%;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    /* ボタン - モダンスタイル */
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      background: var(--bg-card);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: var(--fg);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-chip {
+      border-radius: 9999px;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--bd);
+      background: var(--bg-card);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: var(--fg);
+      font-size: 0.875rem;
+    }
+
+    .btn-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-chip.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: var(--shadow);
+    }
+
+    /* アラート - モダンスタイル */
+    #alerts {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #f59e0b;
+      padding: 1.5rem;
+      margin: 1.5rem;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    #alerts h4 {
+      color: #92400e;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* フッター */
+    footer {
+      padding: 2rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--bd);
+      margin-top: 2rem;
+    }
+
+    /* ツールチップ */
+    #mini-tip {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #fff;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.75rem;
+      box-shadow: var(--shadow-lg);
+      transform: translate(-50%, -130%);
+      white-space: nowrap;
+      display: none;
+      font-weight: 500;
+    }
+
+    /* アニメーション */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .item {
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* レスポンシブ調整 */
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem;
+      }
+
+      .logo {
+        font-size: 1.25rem;
+      }
+
+      #main {
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      #map {
+        height: 400px;
+      }
+
+      #list {
+        max-height: 400px;
+      }
     }
   </style>
   <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
 </head>
-<body>
+<body data-theme="light">
 <header>
+  <div class="logo">💧 ダムウォッチ</div>
   <div class="filters">
     <input id="q" placeholder="ダム名/河川名 検索" class="chip" style="min-width:220px;" />
     <label class="chip">都道府県
@@ -89,6 +469,7 @@
       <button class="btn" id="export-json">JSONエクスポート</button>
     </div>
   </div>
+  <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え">🌙</button>
 </header>
 
 <!-- アラート表示エリア -->
@@ -141,6 +522,25 @@ let map, bbox = null, chart;
 
 // クイックフィルタの状態
 const quick = { low:false, rise:false, fall:false, tonegawa:false, yodogawa:false };
+
+// ---------- ダークモード切り替え ----------
+function initThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  const body = document.body;
+
+  // ローカルストレージから設定を読み込み
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  body.setAttribute('data-theme', savedTheme);
+  toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  toggle.addEventListener('click', () => {
+    const currentTheme = body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    body.setAttribute('data-theme', newTheme);
+    toggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('theme', newTheme);
+  });
+}
 
 // ---------- データ読み込み ----------
 async function loadIndex(){
@@ -649,6 +1049,7 @@ function bindExportEvents(){
 
 // ---------- 起動 ----------
 (async function start(){
+  initThemeToggle();  // ダークモード初期化
   await loadIndex();
   initPrefOptions();
   initRiverOptions();
