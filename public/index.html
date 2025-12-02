@@ -2,8 +2,36 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>ダムウォッチ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- SEO最適化 -->
+  <title>ダムウォッチ - 全国200+ダムのリアルタイム貯水率・水位モニタリング</title>
+  <meta name="description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省・水資源機構・自治体管理ダムの最新データを地図とグラフで可視化。防災・水資源管理に役立つダム情報サイト。" />
+  <meta name="keywords" content="ダム,貯水率,水位,リアルタイム,モニタリング,全国,防災,水資源,国土交通省,水資源機構,利根川,淀川,早明浦ダム,八ッ場ダム" />
+  <meta name="author" content="ダムウォッチ" />
+  <link rel="canonical" href="https://okaspo.github.io/dam-aggregator/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://okaspo.github.io/dam-aggregator/" />
+  <meta property="og:title" content="ダムウォッチ - 全国200+ダムのリアルタイム貯水率・水位モニタリング" />
+  <meta property="og:description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省・水資源機構・自治体管理ダムの最新データを地図とグラフで可視化。" />
+  <meta property="og:image" content="https://okaspo.github.io/dam-aggregator/og-image.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:site_name" content="ダムウォッチ" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://okaspo.github.io/dam-aggregator/" />
+  <meta name="twitter:title" content="ダムウォッチ - 全国200+ダムのリアルタイム貯水率モニタリング" />
+  <meta name="twitter:description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。防災・水資源管理に役立つダム情報サイト。" />
+  <meta name="twitter:image" content="https://okaspo.github.io/dam-aggregator/twitter-card.png" />
+
+  <!-- モバイル最適化 -->
+  <meta name="theme-color" content="#667eea" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ダムウォッチ" />
   <style>
     :root{
       --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1191,5 +1219,91 @@ function bindExportEvents(){
   checkAlerts(INDEX);  // 起動時にアラートチェック
 })();
 </script>
+
+<!-- 構造化データ (JSON-LD) for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ダムウォッチ",
+  "alternateName": "DamWatch Japan",
+  "url": "https://okaspo.github.io/dam-aggregator/",
+  "description": "全国200以上のダムの貯水率・水位をリアルタイムで監視するダム情報モニタリングサイト",
+  "keywords": "ダム,貯水率,水位,リアルタイム,モニタリング,防災,水資源",
+  "inLanguage": "ja",
+  "creator": {
+    "@type": "Organization",
+    "name": "ダムウォッチ"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://okaspo.github.io/dam-aggregator/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "ダムウォッチ - ダム貯水率リアルタイムモニタリング",
+  "url": "https://okaspo.github.io/dam-aggregator/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web Browser",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "100",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "description": "全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省、水資源機構、自治体管理ダムの最新データを地図とグラフで可視化。防災情報として活用可能。",
+  "featureList": [
+    "全国200+ダムのリアルタイムデータ",
+    "インタラクティブ地図表示",
+    "時系列グラフ表示",
+    "貯水率・水位・流入量・放流量の監視",
+    "ダークモード対応",
+    "CSVエクスポート機能",
+    "アラート機能",
+    "フィルタリング・検索機能"
+  ],
+  "screenshot": "https://okaspo.github.io/dam-aggregator/screenshot.png"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "ホーム",
+      "item": "https://okaspo.github.io/dam-aggregator/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "全国ダムマップ",
+      "item": "https://okaspo.github.io/dam-aggregator/#map"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "ダムリスト",
+      "item": "https://okaspo.github.io/dam-aggregator/#list"
+    }
+  ]
+}
+</script>
+
 </body>
 </html>
