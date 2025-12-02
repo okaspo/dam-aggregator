@@ -782,11 +782,11 @@ function colorByLevel(p){
   return '#10b981';
 }
 
-// スパークライン描画（series = [{t:Date, y:number}...])
-function sparkline(canvas, series){
+// スパークライン描画（series = [{t:Date, y:number}...]）
+// アニメーション付きモダンバージョン
+function sparkline(canvas, series, animate = true){
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
 
   const ys = series.map(p=>p.y).filter(v=>typeof v==='number');
   if(ys.length===0) return;
@@ -796,30 +796,86 @@ function sparkline(canvas, series){
   const xStep = (W - pad*2) / Math.max(1, series.length - 1);
   const yScale = (H - pad*2) / (ymax - ymin || 1);
 
-  // 補助線（中央値）
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#e5e7eb';
-  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-
   // 線（色分け）
   const last = series[series.length-1]?.y ?? null;
   const stroke = colorByLevel(last);
 
-  ctx.lineWidth = 1.6;
-  ctx.strokeStyle = stroke;
-  ctx.beginPath();
-  series.forEach((p,i)=>{
-    const x = pad + i * xStep;
-    const y = H - pad - (p.y - ymin) * yScale;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
-  ctx.stroke();
+  // アニメーション描画関数
+  function draw(progress) {
+    ctx.clearRect(0,0,W,H);
 
-  // 直近点
-  const xL = pad + (series.length-1)*xStep;
-  const yL = H - pad - (last - ymin) * yScale;
-  ctx.fillStyle = stroke;
-  ctx.beginPath(); ctx.arc(xL,yL,2.6,0,Math.PI*2); ctx.fill();
+    // 補助線（中央値）
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+
+    // グラデーション効果
+    const gradient = ctx.createLinearGradient(0, 0, W, 0);
+    gradient.addColorStop(0, stroke + '80');
+    gradient.addColorStop(1, stroke);
+
+    // 線を描画（プログレスに応じて）
+    const visiblePoints = Math.ceil(series.length * progress);
+    if (visiblePoints > 0) {
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = gradient;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+
+      for(let i = 0; i <= visiblePoints && i < series.length; i++) {
+        const p = series[i];
+        const x = pad + i * xStep;
+        const y = H - pad - (p.y - ymin) * yScale;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      // グロー効果
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = stroke;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 直近点（プログレス完了時のみ）
+      if (progress >= 1 && series.length > 0) {
+        const xL = pad + (series.length-1)*xStep;
+        const yL = H - pad - (last - ymin) * yScale;
+        ctx.fillStyle = stroke;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = stroke;
+        ctx.beginPath();
+        ctx.arc(xL,yL,3.5,0,Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  // アニメーション実行
+  if (animate && !canvas._animated) {
+    canvas._animated = true;
+    let start = null;
+    const duration = 600;
+
+    function animateFrame(timestamp) {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // イージング（ease-out-cubic）
+      const eased = 1 - Math.pow(1 - progress, 3);
+      draw(eased);
+
+      if (progress < 1) {
+        requestAnimationFrame(animateFrame);
+      }
+    }
+
+    requestAnimationFrame(animateFrame);
+  } else {
+    draw(1);
+  }
 
   // キャンバスに座標変換情報を保存（ツールチップ用）
   canvas._spark = { pad, xStep, ymin, ymax, yScale, series };
