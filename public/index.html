@@ -51,6 +51,9 @@
     <label class="chip">都道府県
       <select id="pref" multiple size="5" style="min-width:140px;margin-left:6px;"></select>
     </label>
+    <label class="chip">河川
+      <select id="river" multiple size="5" style="min-width:140px;margin-left:6px;"></select>
+    </label>
     <label class="chip">貯水率(%) 
       <input id="rate_min" type="number" min="0" max="100" value="0" style="width:70px;margin-left:6px;">〜
       <input id="rate_max" type="number" min="0" max="100" value="100" style="width:70px;">
@@ -70,11 +73,15 @@
       <label>24h |Δ| ≥ <input id="delta24_abs" type="number" value="0" min="0" step="0.5" style="width:70px;"> %</label>
     </fieldset>
     <button id="reset" class="btn">条件リセット</button>
+    <button id="save-filter" class="btn" title="現在のフィルタ条件をブラウザに保存">条件保存</button>
+    <button id="load-filter" class="btn" title="保存したフィルタ条件を復元">条件復元</button>
     <!-- クイックフィルタ -->
     <div class="row" style="margin-left:8px;">
       <button class="btn-chip" id="q-low"   title="貯水率 < 40%">低水位</button>
       <button class="btn-chip" id="q-rise"  title="24hΔ ≥ +2%">上昇</button>
       <button class="btn-chip" id="q-fall"  title="24hΔ ≤ -2%">下降</button>
+      <button class="btn-chip" id="q-tonegawa" title="利根川水系">利根川</button>
+      <button class="btn-chip" id="q-yodogawa" title="淀川水系">淀川</button>
     </div>
     <!-- データエクスポート -->
     <div class="row" style="margin-left:8px;">
@@ -133,7 +140,7 @@ let INDEX = [];
 let map, bbox = null, chart;
 
 // クイックフィルタの状態
-const quick = { low:false, rise:false, fall:false };
+const quick = { low:false, rise:false, fall:false, tonegawa:false, yodogawa:false };
 
 // ---------- データ読み込み ----------
 async function loadIndex(){
@@ -148,10 +155,17 @@ function initPrefOptions(){
   sel.innerHTML = prefs.map(p=>`<option value="${p}">${p}</option>`).join('');
 }
 
+function initRiverOptions(){
+  const rivers = [...new Set(INDEX.map(x=>x.river).filter(r=>r))].sort();
+  const sel = document.getElementById('river');
+  sel.innerHTML = rivers.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+
 // ---------- フィルタ ----------
 function getFilters(){
   const q = document.getElementById('q').value.trim().toLowerCase();
   const pref = Array.from(document.getElementById('pref').selectedOptions).map(o=>o.value);
+  const river = Array.from(document.getElementById('river').selectedOptions).map(o=>o.value);
   const rateMin = +document.getElementById('rate_min').value || 0;
   const rateMax = +document.getElementById('rate_max').value || 100;
   const inBbox = document.getElementById('in_bbox').checked;
@@ -163,12 +177,13 @@ function getFilters(){
     .filter(i => i.checked)
     .map(i=>i.value);
 
-  return { q, pref, rateMin, rateMax, inBbox, rising, falling, delta24_abs, opsChecked };
+  return { q, pref, river, rateMin, rateMax, inBbox, rising, falling, delta24_abs, opsChecked };
 }
 
 function applyFilters(rows, f){
   let r = rows.slice();
   if (f.pref.length) r = r.filter(x => f.pref.includes(x.pref));
+  if (f.river.length) r = r.filter(x => f.river.includes(x.river));
   r = r.filter(x => typeof x.rate_pct==='number' && x.rate_pct>=f.rateMin && x.rate_pct<=f.rateMax);
   if (f.opsChecked.length) r = r.filter(x => f.opsChecked.includes(x.operator_group));
   if (quick.low) r = r.filter(x => (x.rate_pct ?? 101) < 40);
@@ -176,6 +191,8 @@ function applyFilters(rows, f){
   if (f.falling) r = r.filter(x => (x.delta_pct_24h ?? x.delta_pct_last ?? 0) <= -2);
   if (f.delta24_abs > 0) r = r.filter(x => Math.abs(x.delta_pct_24h ?? 0) >= f.delta24_abs);
   if (f.q) r = r.filter(x => (x.name||'').toLowerCase().includes(f.q) || (x.river||'').toLowerCase().includes(f.q));
+  if (quick.tonegawa) r = r.filter(x => (x.river||'').includes('利根川'));
+  if (quick.yodogawa) r = r.filter(x => (x.river||'').includes('淀川'));
   if (f.inBbox && bbox){
     const [minX,minY,maxX,maxY] = bbox;
     r = r.filter(x => x.lon>=minX && x.lon<=maxX && x.lat>=minY && x.lat<=maxY);
@@ -431,20 +448,65 @@ function attachMiniTooltip(canvas, series){
 function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
 function bindEvents(){
-  ['q','pref','rate_min','rate_max','in_bbox','rising','falling','delta24_abs','sort']
+  ['q','pref','river','rate_min','rate_max','in_bbox','rising','falling','delta24_abs','sort']
     .forEach(id => document.getElementById(id).addEventListener('input', debounce(render, 200)));
 
   document.getElementById('reset').addEventListener('click', ()=>{
     document.getElementById('q').value = '';
     Array.from(document.getElementById('pref').options).forEach(o=>o.selected=false);
+    Array.from(document.getElementById('river').options).forEach(o=>o.selected=false);
     document.getElementById('rate_min').value = 0;
     document.getElementById('rate_max').value = 100;
     document.getElementById('in_bbox').checked = false;
     document.getElementById('rising').checked = false;
     document.getElementById('falling').checked = false;
     document.getElementById('delta24_abs').value = 0;
-    quick.low = quick.rise = quick.fall = false;
+    quick.low = quick.rise = quick.fall = quick.tonegawa = quick.yodogawa = false;
     document.querySelectorAll('.btn-chip').forEach(b=>b.classList.remove('active'));
+    render();
+  });
+
+  // フィルタ保存・復元
+  document.getElementById('save-filter').addEventListener('click', ()=>{
+    const filters = getFilters();
+    const state = {
+      q: document.getElementById('q').value,
+      pref: filters.pref,
+      river: filters.river,
+      rate_min: filters.rateMin,
+      rate_max: filters.rateMax,
+      rising: document.getElementById('rising').checked,
+      falling: document.getElementById('falling').checked,
+      delta24_abs: filters.delta24_abs,
+      quick: {...quick}
+    };
+    localStorage.setItem('dam_filters', JSON.stringify(state));
+    alert('フィルタ条件を保存しました');
+  });
+
+  document.getElementById('load-filter').addEventListener('click', ()=>{
+    const saved = localStorage.getItem('dam_filters');
+    if(!saved){ alert('保存されたフィルタがありません'); return; }
+    const state = JSON.parse(saved);
+
+    document.getElementById('q').value = state.q || '';
+    Array.from(document.getElementById('pref').options).forEach(o=>o.selected = state.pref.includes(o.value));
+    Array.from(document.getElementById('river').options).forEach(o=>o.selected = state.river.includes(o.value));
+    document.getElementById('rate_min').value = state.rate_min || 0;
+    document.getElementById('rate_max').value = state.rate_max || 100;
+    document.getElementById('rising').checked = state.rising || false;
+    document.getElementById('falling').checked = state.falling || false;
+    document.getElementById('delta24_abs').value = state.delta24_abs || 0;
+
+    Object.assign(quick, state.quick || {});
+    document.querySelectorAll('.btn-chip').forEach(b=>b.classList.remove('active'));
+    if(quick.low) document.getElementById('q-low').classList.add('active');
+    if(quick.rise) document.getElementById('q-rise').classList.add('active');
+    if(quick.fall) document.getElementById('q-fall').classList.add('active');
+    if(quick.tonegawa) document.getElementById('q-tonegawa').classList.add('active');
+    if(quick.yodogawa) document.getElementById('q-yodogawa').classList.add('active');
+
+    alert('フィルタ条件を復元しました');
     render();
   });
 
@@ -452,9 +514,14 @@ function bindEvents(){
   const qLow = document.getElementById('q-low');
   const qRise = document.getElementById('q-rise');
   const qFall = document.getElementById('q-fall');
+  const qTone = document.getElementById('q-tonegawa');
+  const qYodo = document.getElementById('q-yodogawa');
+
   qLow.onclick  = ()=>{ quick.low  = !quick.low;  qLow.classList.toggle('active');  render(); };
   qRise.onclick = ()=>{ quick.rise = !quick.rise; qRise.classList.toggle('active'); render(); };
   qFall.onclick = ()=>{ quick.fall = !quick.fall; qFall.classList.toggle('active'); render(); };
+  qTone.onclick = ()=>{ quick.tonegawa = !quick.tonegawa; qTone.classList.toggle('active'); render(); };
+  qYodo.onclick = ()=>{ quick.yodogawa = !quick.yodogawa; qYodo.classList.toggle('active'); render(); };
 }
 
 function render(){
@@ -584,6 +651,7 @@ function bindExportEvents(){
 (async function start(){
   await loadIndex();
   initPrefOptions();
+  initRiverOptions();
   initMap();
   bindEvents();
   bindExportEvents();

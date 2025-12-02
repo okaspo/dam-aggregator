@@ -1,0 +1,36 @@
+name: archive-old-data
+
+on:
+  schedule:
+    # 毎月1日の午前2時（UTC）= JST 11:00に実行
+    - cron: '0 2 1 * *'
+  workflow_dispatch: {}  # 手動実行ボタン
+
+permissions:
+  contents: write
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 全履歴を取得
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Archive old data
+        run: python scripts/archive_old_data.py
+
+      - name: Show data statistics
+        run: python scripts/data_stats.py
+
+      - name: Commit archived data
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@example.com"
+          git add public/data/history public/data/archive
+          git commit -m "archive: monthly data archival" || echo "no changes"
+          git push
