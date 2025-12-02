@@ -76,8 +76,19 @@
       <button class="btn-chip" id="q-rise"  title="24hΔ ≥ +2%">上昇</button>
       <button class="btn-chip" id="q-fall"  title="24hΔ ≤ -2%">下降</button>
     </div>
+    <!-- データエクスポート -->
+    <div class="row" style="margin-left:8px;">
+      <button class="btn" id="export-csv">CSVエクスポート</button>
+      <button class="btn" id="export-json">JSONエクスポート</button>
+    </div>
   </div>
 </header>
+
+<!-- アラート表示エリア -->
+<div id="alerts" style="display:none;background:#fef3c7;border:1px solid #f59e0b;padding:12px;margin:12px;border-radius:8px;">
+  <h4 style="margin:0 0 8px 0;color:#92400e;">⚠️ アラート</h4>
+  <div id="alert-list"></div>
+</div>
 
 <div id="main">
   <div id="map"></div>
@@ -452,12 +463,131 @@ function render(){
   renderList(rows);
 }
 
+// ---------- アラート機能 ----------
+function checkAlerts(rows){
+  const alerts = [];
+
+  for(const row of rows){
+    // 低水位アラート（貯水率 < 30%）
+    if(typeof row.rate_pct === 'number' && row.rate_pct < 30){
+      alerts.push({
+        type: 'low',
+        message: `${row.name}（${row.pref}）の貯水率が${row.rate_pct}%と低下しています`,
+        dam: row
+      });
+    }
+
+    // 急激な減少アラート（24h変化 < -5%）
+    if(typeof row.delta_pct_24h === 'number' && row.delta_pct_24h < -5){
+      alerts.push({
+        type: 'rapid_decrease',
+        message: `${row.name}（${row.pref}）の貯水率が24時間で${row.delta_pct_24h}%減少しています`,
+        dam: row
+      });
+    }
+
+    // 急激な増加アラート（24h変化 > +10%）
+    if(typeof row.delta_pct_24h === 'number' && row.delta_pct_24h > 10){
+      alerts.push({
+        type: 'rapid_increase',
+        message: `${row.name}（${row.pref}）の貯水率が24時間で${row.delta_pct_24h}%増加しています`,
+        dam: row
+      });
+    }
+  }
+
+  displayAlerts(alerts);
+  return alerts;
+}
+
+function displayAlerts(alerts){
+  const alertEl = document.getElementById('alerts');
+  const listEl = document.getElementById('alert-list');
+
+  if(alerts.length === 0){
+    alertEl.style.display = 'none';
+    return;
+  }
+
+  alertEl.style.display = 'block';
+  listEl.innerHTML = alerts.map(a => `
+    <div style="margin-bottom:6px;padding:6px;background:#fff;border-radius:4px;">
+      <span style="color:#92400e;">${a.message}</span>
+    </div>
+  `).join('');
+}
+
+// ---------- データエクスポート機能 ----------
+function exportToCSV(rows){
+  const headers = ['ダムID', 'ダム名', '都道府県', '河川', '管理体制', '緯度', '経度', '貯水率(%)', '水位(m)', '24h変化(%)', '更新日時'];
+  const csvRows = [headers.join(',')];
+
+  for(const row of rows){
+    const values = [
+      row.dam_id || '',
+      `"${(row.name || '').replace(/"/g, '""')}"`,
+      row.pref || '',
+      `"${(row.river || '').replace(/"/g, '""')}"`,
+      row.operator_group || '',
+      row.lat || '',
+      row.lon || '',
+      row.rate_pct ?? '',
+      row.level_m ?? '',
+      row.delta_pct_24h ?? '',
+      row.updated_at || ''
+    ];
+    csvRows.push(values.join(','));
+  }
+
+  const csv = csvRows.join('\n');
+  const bom = '\uFEFF';  // UTF-8 BOM for Excel
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `dam_data_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportToJSON(rows){
+  const json = JSON.stringify({
+    exported_at: new Date().toISOString(),
+    count: rows.length,
+    records: rows
+  }, null, 2);
+
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `dam_data_${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function bindExportEvents(){
+  document.getElementById('export-csv').addEventListener('click', ()=>{
+    const f = getFilters();
+    const rows = applyFilters(INDEX, f);
+    exportToCSV(rows);
+  });
+
+  document.getElementById('export-json').addEventListener('click', ()=>{
+    const f = getFilters();
+    const rows = applyFilters(INDEX, f);
+    exportToJSON(rows);
+  });
+}
+
 // ---------- 起動 ----------
 (async function start(){
   await loadIndex();
   initPrefOptions();
   initMap();
   bindEvents();
+  bindExportEvents();
+  checkAlerts(INDEX);  // 起動時にアラートチェック
 })();
 </script>
 </body>

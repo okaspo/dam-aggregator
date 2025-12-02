@@ -17,9 +17,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      # 取得（今はサンプル。実データアダプタに差し替え可能）
-      - name: Fetch
-        run: python scripts/fetch_example.py
+      # 全国のダムデータ取得
+      - name: Fetch all dams
+        run: python scripts/fetch_all_dams.py
 
       - name: Append history
         run: python scripts/append_history.py
