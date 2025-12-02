@@ -420,8 +420,33 @@
         max-height: 400px;
       }
     }
+
+    /* AdSense広告スタイル */
+    .ad-container {
+      margin: 1.5rem auto;
+      padding: 1rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid var(--bd);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+    }
+
+    .ad-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
   </style>
   <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3008545198706381"
+     crossorigin="anonymous"></script>
 </head>
 <body data-theme="light">
 <header>
@@ -472,6 +497,23 @@
   <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え">🌙</button>
 </header>
 
+<!-- AdSense: トップバナー広告 -->
+<div class="ad-container" style="max-width: 1800px; margin: 1.5rem auto;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- 横長バナー広告 (728x90 or レスポンシブ) -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="横長バナー用スロットID"
+         data-ad-format="horizontal"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+
 <!-- アラート表示エリア -->
 <div id="alerts" style="display:none;background:#fef3c7;border:1px solid #f59e0b;padding:12px;margin:12px;border-radius:8px;">
   <h4 style="margin:0 0 8px 0;color:#92400e;">⚠️ アラート</h4>
@@ -498,9 +540,43 @@
   </div>
 </div>
 
+<!-- AdSense: コンテンツ中広告 -->
+<div class="ad-container" style="max-width: 1400px;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- レスポンシブ広告 -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="レスポンシブ用スロットID"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+
 <div id="detail">
   <h3 id="detail-title">推移</h3>
   <canvas id="chart" height="160"></canvas>
+</div>
+
+<!-- AdSense: 記事内広告 -->
+<div class="ad-container" style="max-width: 1400px;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- 記事内広告 -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="記事内広告用スロットID"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
 </div>
 
 <footer>
