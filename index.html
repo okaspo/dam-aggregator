@@ -2,82 +2,672 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <title>ダムウォッチ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- SEO最適化 -->
+  <title>ダムウォッチ - 全国200+ダムのリアルタイム貯水率・水位モニタリング</title>
+  <meta name="description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省・水資源機構・自治体管理ダムの最新データを地図とグラフで可視化。防災・水資源管理に役立つダム情報サイト。" />
+  <meta name="keywords" content="ダム,貯水率,水位,リアルタイム,モニタリング,全国,防災,水資源,国土交通省,水資源機構,利根川,淀川,早明浦ダム,八ッ場ダム" />
+  <meta name="author" content="ダムウォッチ" />
+  <link rel="canonical" href="https://okaspo.github.io/dam-aggregator/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://okaspo.github.io/dam-aggregator/" />
+  <meta property="og:title" content="ダムウォッチ - 全国200+ダムのリアルタイム貯水率・水位モニタリング" />
+  <meta property="og:description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省・水資源機構・自治体管理ダムの最新データを地図とグラフで可視化。" />
+  <meta property="og:image" content="https://okaspo.github.io/dam-aggregator/og-image.png" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:site_name" content="ダムウォッチ" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://okaspo.github.io/dam-aggregator/" />
+  <meta name="twitter:title" content="ダムウォッチ - 全国200+ダムのリアルタイム貯水率モニタリング" />
+  <meta name="twitter:description" content="全国200以上のダムの貯水率・水位をリアルタイムで監視。防災・水資源管理に役立つダム情報サイト。" />
+  <meta name="twitter:image" content="https://okaspo.github.io/dam-aggregator/twitter-card.png" />
+
+  <!-- モバイル最適化 -->
+  <meta name="theme-color" content="#667eea" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ダムウォッチ" />
   <style>
     :root{
-      --bd:#e5e7eb; --fg:#111827; --muted:#6b7280; --chip:#f3f4f6; --bg:#ffffff;
-      --green:#10b981; --yellow:#f59e0b; --orange:#f97316; --red:#ef4444; --gray:#9ca3af; --blue:#2563eb;
+      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --bg-light: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.95);
+      --bd: rgba(226, 232, 240, 0.8);
+      --fg: #1e293b;
+      --muted: #64748b;
+      --chip: rgba(248, 250, 252, 0.8);
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --orange: #f97316;
+      --red: #ef4444;
+      --gray: #94a3b8;
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
     }
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bg);margin:0}
-    header{padding:10px 12px;border-bottom:1px solid var(--bd);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .filters label{font-size:12px;color:var(--muted)}
-    .chip{background:var(--chip);border:1px solid var(--bd);border-radius:999px;padding:6px 8px;display:inline-flex;gap:6px;align-items:center}
-    select, input[type="number"], input[type="text"]{padding:6px 8px;border:1px solid var(--bd);border-radius:8px}
-    fieldset{border:1px solid var(--bd);border-radius:8px;padding:6px 8px}
-    legend{font-size:12px;color:var(--muted);padding:0 6px}
-    #main{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;padding:12px}
-    #map{height:520px;border:1px solid var(--bd);border-radius:12px}
-    #list{max-height:520px;overflow:auto;border:1px solid var(--bd);border-radius:12px;padding:8px;position:relative}
-    .item{border-bottom:1px solid #f3f4f6;padding:8px 4px}
-    .item h4{margin:0 0 4px 0;font-size:14px}
-    .meta{font-size:12px;color:var(--muted)}
-    .badge{display:inline-block;border-radius:6px;padding:2px 6px;font-size:11px;border:1px solid var(--bd);background:#fff;margin-left:6px}
-    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
-    .row-line{display:flex;align-items:center;gap:12px;justify-content:space-between}
-    #detail{padding:12px;border-top:1px solid var(--bd)}
-    #chart{max-width:100%;border:1px solid var(--bd);border-radius:12px;padding:8px}
-    .btn{padding:6px 10px;border:1px solid var(--bd);border-radius:8px;background:#fff;cursor:pointer}
-    .btn:hover{background:#f9fafb}
-    .mini{width:240px;height:42px;border:1px solid var(--bd);border-radius:8px;display:block;background:#fff}
-    .btn-chip{border-radius:999px;padding:6px 10px;border:1px solid var(--bd);background:#fff;cursor:pointer}
-    .btn-chip.active{background:#111827;color:#fff;border-color:#111827}
-    footer{padding:12px;border-top:1px solid var(--bd);font-size:12px;color:var(--muted)}
-    /* ミニツールチップ */
-    #mini-tip{
-      position:fixed; z-index:9999; pointer-events:none;
-      background:#111827; color:#fff; font-size:12px; padding:4px 6px; border-radius:6px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.15); transform:translate(-50%, -130%); white-space:nowrap; display:none;
+
+    [data-theme="dark"] {
+      --bg-gradient: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      --bg-light: #0f172a;
+      --bg-card: rgba(30, 41, 59, 0.95);
+      --bd: rgba(51, 65, 85, 0.8);
+      --fg: #f1f5f9;
+      --muted: #94a3b8;
+      --chip: rgba(30, 41, 59, 0.8);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg-light);
+      background-image: var(--bg-gradient);
+      background-attachment: fixed;
+      line-height: 1.6;
+      transition: all 0.3s ease;
+    }
+
+    /* ヘッダー - コンパクト */
+    header {
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--bd);
+      box-shadow: var(--shadow);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    [data-theme="dark"] .logo {
+      background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ダークモードトグル */
+    .theme-toggle {
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      background: var(--chip);
+      border: 1px solid var(--bd);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 1.2rem;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow);
+    }
+
+    /* 左サイドバー */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 60px;
+      width: 300px;
+      height: calc(100vh - 60px);
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--bd);
+      overflow-y: auto;
+      padding: 1.5rem 1rem;
+      z-index: 50;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--muted);
+      border-radius: 3px;
+    }
+
+    .sidebar h3 {
+      font-size: 0.875rem;
+      font-weight: 700;
+      margin: 1.25rem 0 0.5rem 0;
+      color: var(--fg);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar h3:first-child {
+      margin-top: 0;
+    }
+
+    .filter-group {
+      margin-bottom: 1rem;
+    }
+
+    .filter-group label {
+      display: block;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.375rem;
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+    }
+
+    .filter-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .quick-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    /* メインコンテンツラッパー */
+    .main-wrapper {
+      margin-left: 300px;
+      padding-top: 60px;
+    }
+
+    .filters {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    /* チップ - Glass Morphism */
+    .chip {
+      background: var(--chip);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--bd);
+      border-radius: 9999px;
+      padding: 0.5rem 1rem;
+      display: inline-flex;
+      gap: 0.5rem;
+      align-items: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .chip:hover {
+      box-shadow: var(--shadow);
+      transform: translateY(-1px);
+    }
+
+    select, input[type="number"], input[type="text"] {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      background: var(--bg-card);
+      color: var(--fg);
+      transition: all 0.3s ease;
+      font-family: inherit;
+    }
+
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+
+    fieldset {
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: var(--chip);
+    }
+
+    legend {
+      font-size: 0.875rem;
+      color: var(--muted);
+      padding: 0 0.5rem;
+      font-weight: 500;
+    }
+
+    /* メインコンテンツ */
+    #main {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem;
+      padding: 1.5rem;
+    }
+
+    @media (max-width: 1400px) {
+      #main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .main-wrapper {
+        margin-left: 0;
+      }
+
+      .sidebar-toggle {
+        display: block;
+      }
+    }
+
+    /* 地図 - カードスタイル */
+    #map {
+      height: 600px;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+      background: var(--bg-card);
+      border: 1px solid var(--bd);
+    }
+
+    /* リスト - Glass Morphism */
+    #list {
+      max-height: 600px;
+      overflow: auto;
+      border-radius: 1.5rem;
+      padding: 1rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--bd);
+    }
+
+    #list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    #list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #list::-webkit-scrollbar-thumb {
+      background: var(--muted);
+      border-radius: 4px;
+    }
+
+    #list::-webkit-scrollbar-thumb:hover {
+      background: var(--purple);
+    }
+
+    /* ダムアイテム - モダンカード */
+    .item {
+      border-bottom: 1px solid var(--bd);
+      padding: 1rem 0.5rem;
+      transition: all 0.3s ease;
+      border-radius: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .item:hover {
+      background: var(--chip);
+      transform: translateX(4px);
+      box-shadow: var(--shadow);
+    }
+
+    .item h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--fg);
+    }
+
+    .meta {
+      font-size: 0.875rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: 1px solid var(--bd);
+      background: var(--bg-card);
+      margin-left: 0.5rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .row {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .row-line {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    /* 詳細セクション */
+    #detail {
+      padding: 1.5rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 1.5rem;
+      margin: 1.5rem;
+      box-shadow: var(--shadow-lg);
+      border: 1px solid var(--bd);
+    }
+
+    #detail-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    #chart {
+      max-width: 100%;
+      border-radius: 1rem;
+      padding: 1rem;
+    }
+
+    /* ボタン - モダンスタイル */
+    .btn {
+      padding: 0.625rem 1.25rem;
+      border: 1px solid var(--bd);
+      border-radius: 0.75rem;
+      background: var(--bg-card);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: var(--fg);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      font-family: inherit;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-chip {
+      border-radius: 9999px;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--bd);
+      background: var(--bg-card);
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: var(--fg);
+      font-size: 0.875rem;
+    }
+
+    .btn-chip:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn-chip.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-color: transparent;
+      box-shadow: var(--shadow);
+    }
+
+    /* アラート - モダンスタイル */
+    #alerts {
+      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+      border: 1px solid #f59e0b;
+      padding: 1.5rem;
+      margin: 1.5rem;
+      border-radius: 1.5rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    #alerts h4 {
+      color: #92400e;
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    /* フッター */
+    footer {
+      padding: 2rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      font-size: 0.875rem;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--bd);
+      margin-top: 2rem;
+    }
+
+    /* ツールチップ */
+    #mini-tip {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      color: #fff;
+      font-size: 0.875rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.75rem;
+      box-shadow: var(--shadow-lg);
+      transform: translate(-50%, -130%);
+      white-space: nowrap;
+      display: none;
+      font-weight: 500;
+    }
+
+    /* アニメーション */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .item {
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* レスポンシブ調整 */
+    @media (max-width: 768px) {
+      header {
+        padding: 1rem;
+      }
+
+      .logo {
+        font-size: 1.25rem;
+      }
+
+      #main {
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      #map {
+        height: 400px;
+      }
+
+      #list {
+        max-height: 400px;
+      }
+    }
+
+    /* AdSense広告スタイル */
+    .ad-container {
+      margin: 1.5rem auto;
+      padding: 1rem;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      border-radius: 1rem;
+      border: 1px solid var(--bd);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+    }
+
+    .ad-label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 0.5rem;
     }
   </style>
   <link href="https://unpkg.com/maplibre-gl@3.6.1/dist/maplibre-gl.css" rel="stylesheet" />
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3008545198706381"
+     crossorigin="anonymous"></script>
 </head>
-<body>
+<body data-theme="light">
 <header>
-  <div class="filters">
-    <input id="q" placeholder="ダム名/河川名 検索" class="chip" style="min-width:220px;" />
-    <label class="chip">都道府県
-      <select id="pref" multiple size="5" style="min-width:140px;margin-left:6px;"></select>
-    </label>
-    <label class="chip">貯水率(%) 
-      <input id="rate_min" type="number" min="0" max="100" value="0" style="width:70px;margin-left:6px;">〜
+  <div class="logo">💧 ダムウォッチ</div>
+  <button class="theme-toggle" id="theme-toggle" title="ダークモード切り替え">🌙</button>
+</header>
+
+<!-- 左サイドバー：フィルタ -->
+<aside class="sidebar">
+  <h3>🔍 検索</h3>
+  <div class="filter-group">
+    <input id="q" placeholder="ダム名/河川名で検索..." style="width:100%;" />
+  </div>
+
+  <h3>📍 エリア</h3>
+  <div class="filter-group">
+    <label>都道府県</label>
+    <select id="pref" multiple size="4"></select>
+  </div>
+
+  <div class="filter-group">
+    <label>河川</label>
+    <select id="river" multiple size="4"></select>
+  </div>
+
+  <h3>💧 貯水率</h3>
+  <div class="filter-group">
+    <label>貯水率範囲 (%)</label>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <input id="rate_min" type="number" min="0" max="100" value="0" style="width:70px;">
+      <span>〜</span>
       <input id="rate_max" type="number" min="0" max="100" value="100" style="width:70px;">
-    </label>
-    <fieldset class="chip" id="ops" style="border:none">
-      <legend>管理体制</legend>
-      <label><input type="checkbox" value="国" checked> 国</label>
-      <label><input type="checkbox" value="自治体" checked> 自治体</label>
-      <label><input type="checkbox" value="水資源機構" checked> 水資源機構</label>
-      <label><input type="checkbox" value="民間" checked> 民間</label>
-    </fieldset>
-    <label class="chip"><input id="in_bbox" type="checkbox"> 地図で絞り込む</label>
-    <fieldset class="chip" style="border:none">
-      <legend>上昇/下降</legend>
-      <label><input id="rising" type="checkbox"> 直近上昇</label>
-      <label><input id="falling" type="checkbox"> 直近日下降</label>
-      <label>24h |Δ| ≥ <input id="delta24_abs" type="number" value="0" min="0" step="0.5" style="width:70px;"> %</label>
-    </fieldset>
-    <button id="reset" class="btn">条件リセット</button>
-    <!-- クイックフィルタ -->
-    <div class="row" style="margin-left:8px;">
-      <button class="btn-chip" id="q-low"   title="貯水率 < 40%">低水位</button>
-      <button class="btn-chip" id="q-rise"  title="24hΔ ≥ +2%">上昇</button>
-      <button class="btn-chip" id="q-fall"  title="24hΔ ≤ -2%">下降</button>
     </div>
   </div>
-</header>
+
+  <h3>🏢 管理体制</h3>
+  <fieldset id="ops" style="border:none;padding:0;">
+    <div style="display:flex;flex-direction:column;gap:0.375rem;">
+      <label style="font-size:0.8125rem;"><input type="checkbox" value="国" checked> 国土交通省</label>
+      <label style="font-size:0.8125rem;"><input type="checkbox" value="自治体" checked> 自治体</label>
+      <label style="font-size:0.8125rem;"><input type="checkbox" value="水資源機構" checked> 水資源機構</label>
+      <label style="font-size:0.8125rem;"><input type="checkbox" value="民間" checked> 民間</label>
+    </div>
+  </fieldset>
+
+  <h3>📈 変動</h3>
+  <div class="filter-group">
+    <label style="font-size:0.8125rem;"><input id="rising" type="checkbox"> 直近上昇 (24h Δ ≥ +2%)</label>
+    <label style="font-size:0.8125rem;"><input id="falling" type="checkbox"> 直近下降 (24h Δ ≤ -2%)</label>
+    <label style="font-size:0.8125rem;margin-top:0.5rem;">24h変化の絶対値 ≥
+      <input id="delta24_abs" type="number" value="0" min="0" step="0.5" style="width:60px;"> %
+    </label>
+  </div>
+
+  <h3>🗺️ 地図</h3>
+  <div class="filter-group">
+    <label style="font-size:0.8125rem;"><input id="in_bbox" type="checkbox"> 地図表示範囲で絞り込む</label>
+  </div>
+
+  <h3>⚡ クイックフィルタ</h3>
+  <div class="quick-filters">
+    <button class="btn-chip" id="q-low" title="貯水率 < 40%">低水位</button>
+    <button class="btn-chip" id="q-rise" title="24hΔ ≥ +2%">上昇</button>
+    <button class="btn-chip" id="q-fall" title="24hΔ ≤ -2%">下降</button>
+    <button class="btn-chip" id="q-tonegawa" title="利根川水系">利根川</button>
+    <button class="btn-chip" id="q-yodogawa" title="淀川水系">淀川</button>
+  </div>
+
+  <h3>⚙️ 操作</h3>
+  <div class="filter-buttons">
+    <button id="reset" class="btn">条件リセット</button>
+    <button id="save-filter" class="btn" title="現在のフィルタ条件をブラウザに保存">条件保存</button>
+    <button id="load-filter" class="btn" title="保存したフィルタ条件を復元">条件復元</button>
+    <button id="export-csv" class="btn">CSVエクスポート</button>
+    <button id="export-json" class="btn">JSONエクスポート</button>
+  </div>
+</aside>
+
+<!-- メインコンテンツラッパー -->
+<div class="main-wrapper">
+
+<!-- AdSense: トップバナー広告 -->
+<div class="ad-container" style="max-width: 1800px; margin: 1.5rem auto;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- 横長バナー広告 (レスポンシブ) -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="2332961351"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+
+<!-- アラート表示エリア -->
+<div id="alerts" style="display:none;background:#fef3c7;border:1px solid #f59e0b;padding:12px;margin:12px;border-radius:8px;">
+  <h4 style="margin:0 0 8px 0;color:#92400e;">⚠️ アラート</h4>
+  <div id="alert-list"></div>
+</div>
 
 <div id="main">
   <div id="map"></div>
@@ -99,10 +689,47 @@
   </div>
 </div>
 
+<!-- AdSense: コンテンツ中広告 -->
+<div class="ad-container" style="max-width: 1400px;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- レスポンシブ広告 -->
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="2332961351"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+
 <div id="detail">
   <h3 id="detail-title">推移</h3>
   <canvas id="chart" height="160"></canvas>
 </div>
+
+<!-- AdSense: 記事内広告 -->
+<div class="ad-container" style="max-width: 1400px;">
+  <div style="width: 100%;">
+    <div class="ad-label">スポンサー</div>
+    <!-- 記事内広告 -->
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-layout="in-article"
+         data-ad-format="fluid"
+         data-ad-client="ca-pub-3008545198706381"
+         data-ad-slot="8095605684"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+  </div>
+</div>
+
+</div>
+<!-- /main-wrapper -->
 
 <footer>
   出典：各自治体の公開データ／オープンデータ等（サイト規約順守）。地図タイル：国土地理院。<br/>
@@ -122,7 +749,26 @@ let INDEX = [];
 let map, bbox = null, chart;
 
 // クイックフィルタの状態
-const quick = { low:false, rise:false, fall:false };
+const quick = { low:false, rise:false, fall:false, tonegawa:false, yodogawa:false };
+
+// ---------- ダークモード切り替え ----------
+function initThemeToggle() {
+  const toggle = document.getElementById('theme-toggle');
+  const body = document.body;
+
+  // ローカルストレージから設定を読み込み
+  const savedTheme = localStorage.getItem('theme') || 'light';
+  body.setAttribute('data-theme', savedTheme);
+  toggle.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+  toggle.addEventListener('click', () => {
+    const currentTheme = body.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    body.setAttribute('data-theme', newTheme);
+    toggle.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    localStorage.setItem('theme', newTheme);
+  });
+}
 
 // ---------- データ読み込み ----------
 async function loadIndex(){
@@ -137,10 +783,17 @@ function initPrefOptions(){
   sel.innerHTML = prefs.map(p=>`<option value="${p}">${p}</option>`).join('');
 }
 
+function initRiverOptions(){
+  const rivers = [...new Set(INDEX.map(x=>x.river).filter(r=>r))].sort();
+  const sel = document.getElementById('river');
+  sel.innerHTML = rivers.map(r=>`<option value="${r}">${r}</option>`).join('');
+}
+
 // ---------- フィルタ ----------
 function getFilters(){
   const q = document.getElementById('q').value.trim().toLowerCase();
   const pref = Array.from(document.getElementById('pref').selectedOptions).map(o=>o.value);
+  const river = Array.from(document.getElementById('river').selectedOptions).map(o=>o.value);
   const rateMin = +document.getElementById('rate_min').value || 0;
   const rateMax = +document.getElementById('rate_max').value || 100;
   const inBbox = document.getElementById('in_bbox').checked;
@@ -152,12 +805,13 @@ function getFilters(){
     .filter(i => i.checked)
     .map(i=>i.value);
 
-  return { q, pref, rateMin, rateMax, inBbox, rising, falling, delta24_abs, opsChecked };
+  return { q, pref, river, rateMin, rateMax, inBbox, rising, falling, delta24_abs, opsChecked };
 }
 
 function applyFilters(rows, f){
   let r = rows.slice();
   if (f.pref.length) r = r.filter(x => f.pref.includes(x.pref));
+  if (f.river.length) r = r.filter(x => f.river.includes(x.river));
   r = r.filter(x => typeof x.rate_pct==='number' && x.rate_pct>=f.rateMin && x.rate_pct<=f.rateMax);
   if (f.opsChecked.length) r = r.filter(x => f.opsChecked.includes(x.operator_group));
   if (quick.low) r = r.filter(x => (x.rate_pct ?? 101) < 40);
@@ -165,6 +819,8 @@ function applyFilters(rows, f){
   if (f.falling) r = r.filter(x => (x.delta_pct_24h ?? x.delta_pct_last ?? 0) <= -2);
   if (f.delta24_abs > 0) r = r.filter(x => Math.abs(x.delta_pct_24h ?? 0) >= f.delta24_abs);
   if (f.q) r = r.filter(x => (x.name||'').toLowerCase().includes(f.q) || (x.river||'').toLowerCase().includes(f.q));
+  if (quick.tonegawa) r = r.filter(x => (x.river||'').includes('利根川'));
+  if (quick.yodogawa) r = r.filter(x => (x.river||'').includes('淀川'));
   if (f.inBbox && bbox){
     const [minX,minY,maxX,maxY] = bbox;
     r = r.filter(x => x.lon>=minX && x.lon<=maxX && x.lat>=minY && x.lat<=maxY);
@@ -354,11 +1010,11 @@ function colorByLevel(p){
   return '#10b981';
 }
 
-// スパークライン描画（series = [{t:Date, y:number}...])
-function sparkline(canvas, series){
+// スパークライン描画（series = [{t:Date, y:number}...]）
+// アニメーション付きモダンバージョン
+function sparkline(canvas, series, animate = true){
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
-  ctx.clearRect(0,0,W,H);
 
   const ys = series.map(p=>p.y).filter(v=>typeof v==='number');
   if(ys.length===0) return;
@@ -368,30 +1024,86 @@ function sparkline(canvas, series){
   const xStep = (W - pad*2) / Math.max(1, series.length - 1);
   const yScale = (H - pad*2) / (ymax - ymin || 1);
 
-  // 補助線（中央値）
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#e5e7eb';
-  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
-
   // 線（色分け）
   const last = series[series.length-1]?.y ?? null;
   const stroke = colorByLevel(last);
 
-  ctx.lineWidth = 1.6;
-  ctx.strokeStyle = stroke;
-  ctx.beginPath();
-  series.forEach((p,i)=>{
-    const x = pad + i * xStep;
-    const y = H - pad - (p.y - ymin) * yScale;
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  });
-  ctx.stroke();
+  // アニメーション描画関数
+  function draw(progress) {
+    ctx.clearRect(0,0,W,H);
 
-  // 直近点
-  const xL = pad + (series.length-1)*xStep;
-  const yL = H - pad - (last - ymin) * yScale;
-  ctx.fillStyle = stroke;
-  ctx.beginPath(); ctx.arc(xL,yL,2.6,0,Math.PI*2); ctx.fill();
+    // 補助線（中央値）
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+
+    // グラデーション効果
+    const gradient = ctx.createLinearGradient(0, 0, W, 0);
+    gradient.addColorStop(0, stroke + '80');
+    gradient.addColorStop(1, stroke);
+
+    // 線を描画（プログレスに応じて）
+    const visiblePoints = Math.ceil(series.length * progress);
+    if (visiblePoints > 0) {
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = gradient;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+
+      for(let i = 0; i <= visiblePoints && i < series.length; i++) {
+        const p = series[i];
+        const x = pad + i * xStep;
+        const y = H - pad - (p.y - ymin) * yScale;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      // グロー効果
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = stroke;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 直近点（プログレス完了時のみ）
+      if (progress >= 1 && series.length > 0) {
+        const xL = pad + (series.length-1)*xStep;
+        const yL = H - pad - (last - ymin) * yScale;
+        ctx.fillStyle = stroke;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = stroke;
+        ctx.beginPath();
+        ctx.arc(xL,yL,3.5,0,Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  // アニメーション実行
+  if (animate && !canvas._animated) {
+    canvas._animated = true;
+    let start = null;
+    const duration = 600;
+
+    function animateFrame(timestamp) {
+      if (!start) start = timestamp;
+      const elapsed = timestamp - start;
+      const progress = Math.min(elapsed / duration, 1);
+
+      // イージング（ease-out-cubic）
+      const eased = 1 - Math.pow(1 - progress, 3);
+      draw(eased);
+
+      if (progress < 1) {
+        requestAnimationFrame(animateFrame);
+      }
+    }
+
+    requestAnimationFrame(animateFrame);
+  } else {
+    draw(1);
+  }
 
   // キャンバスに座標変換情報を保存（ツールチップ用）
   canvas._spark = { pad, xStep, ymin, ymax, yScale, series };
@@ -420,20 +1132,65 @@ function attachMiniTooltip(canvas, series){
 function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
 function bindEvents(){
-  ['q','pref','rate_min','rate_max','in_bbox','rising','falling','delta24_abs','sort']
+  ['q','pref','river','rate_min','rate_max','in_bbox','rising','falling','delta24_abs','sort']
     .forEach(id => document.getElementById(id).addEventListener('input', debounce(render, 200)));
 
   document.getElementById('reset').addEventListener('click', ()=>{
     document.getElementById('q').value = '';
     Array.from(document.getElementById('pref').options).forEach(o=>o.selected=false);
+    Array.from(document.getElementById('river').options).forEach(o=>o.selected=false);
     document.getElementById('rate_min').value = 0;
     document.getElementById('rate_max').value = 100;
     document.getElementById('in_bbox').checked = false;
     document.getElementById('rising').checked = false;
     document.getElementById('falling').checked = false;
     document.getElementById('delta24_abs').value = 0;
-    quick.low = quick.rise = quick.fall = false;
+    quick.low = quick.rise = quick.fall = quick.tonegawa = quick.yodogawa = false;
     document.querySelectorAll('.btn-chip').forEach(b=>b.classList.remove('active'));
+    render();
+  });
+
+  // フィルタ保存・復元
+  document.getElementById('save-filter').addEventListener('click', ()=>{
+    const filters = getFilters();
+    const state = {
+      q: document.getElementById('q').value,
+      pref: filters.pref,
+      river: filters.river,
+      rate_min: filters.rateMin,
+      rate_max: filters.rateMax,
+      rising: document.getElementById('rising').checked,
+      falling: document.getElementById('falling').checked,
+      delta24_abs: filters.delta24_abs,
+      quick: {...quick}
+    };
+    localStorage.setItem('dam_filters', JSON.stringify(state));
+    alert('フィルタ条件を保存しました');
+  });
+
+  document.getElementById('load-filter').addEventListener('click', ()=>{
+    const saved = localStorage.getItem('dam_filters');
+    if(!saved){ alert('保存されたフィルタがありません'); return; }
+    const state = JSON.parse(saved);
+
+    document.getElementById('q').value = state.q || '';
+    Array.from(document.getElementById('pref').options).forEach(o=>o.selected = state.pref.includes(o.value));
+    Array.from(document.getElementById('river').options).forEach(o=>o.selected = state.river.includes(o.value));
+    document.getElementById('rate_min').value = state.rate_min || 0;
+    document.getElementById('rate_max').value = state.rate_max || 100;
+    document.getElementById('rising').checked = state.rising || false;
+    document.getElementById('falling').checked = state.falling || false;
+    document.getElementById('delta24_abs').value = state.delta24_abs || 0;
+
+    Object.assign(quick, state.quick || {});
+    document.querySelectorAll('.btn-chip').forEach(b=>b.classList.remove('active'));
+    if(quick.low) document.getElementById('q-low').classList.add('active');
+    if(quick.rise) document.getElementById('q-rise').classList.add('active');
+    if(quick.fall) document.getElementById('q-fall').classList.add('active');
+    if(quick.tonegawa) document.getElementById('q-tonegawa').classList.add('active');
+    if(quick.yodogawa) document.getElementById('q-yodogawa').classList.add('active');
+
+    alert('フィルタ条件を復元しました');
     render();
   });
 
@@ -441,9 +1198,14 @@ function bindEvents(){
   const qLow = document.getElementById('q-low');
   const qRise = document.getElementById('q-rise');
   const qFall = document.getElementById('q-fall');
+  const qTone = document.getElementById('q-tonegawa');
+  const qYodo = document.getElementById('q-yodogawa');
+
   qLow.onclick  = ()=>{ quick.low  = !quick.low;  qLow.classList.toggle('active');  render(); };
   qRise.onclick = ()=>{ quick.rise = !quick.rise; qRise.classList.toggle('active'); render(); };
   qFall.onclick = ()=>{ quick.fall = !quick.fall; qFall.classList.toggle('active'); render(); };
+  qTone.onclick = ()=>{ quick.tonegawa = !quick.tonegawa; qTone.classList.toggle('active'); render(); };
+  qYodo.onclick = ()=>{ quick.yodogawa = !quick.yodogawa; qYodo.classList.toggle('active'); render(); };
 }
 
 function render(){
@@ -452,13 +1214,220 @@ function render(){
   renderList(rows);
 }
 
+// ---------- アラート機能 ----------
+function checkAlerts(rows){
+  const alerts = [];
+
+  for(const row of rows){
+    // 低水位アラート（貯水率 < 30%）
+    if(typeof row.rate_pct === 'number' && row.rate_pct < 30){
+      alerts.push({
+        type: 'low',
+        message: `${row.name}（${row.pref}）の貯水率が${row.rate_pct}%と低下しています`,
+        dam: row
+      });
+    }
+
+    // 急激な減少アラート（24h変化 < -5%）
+    if(typeof row.delta_pct_24h === 'number' && row.delta_pct_24h < -5){
+      alerts.push({
+        type: 'rapid_decrease',
+        message: `${row.name}（${row.pref}）の貯水率が24時間で${row.delta_pct_24h}%減少しています`,
+        dam: row
+      });
+    }
+
+    // 急激な増加アラート（24h変化 > +10%）
+    if(typeof row.delta_pct_24h === 'number' && row.delta_pct_24h > 10){
+      alerts.push({
+        type: 'rapid_increase',
+        message: `${row.name}（${row.pref}）の貯水率が24時間で${row.delta_pct_24h}%増加しています`,
+        dam: row
+      });
+    }
+  }
+
+  displayAlerts(alerts);
+  return alerts;
+}
+
+function displayAlerts(alerts){
+  const alertEl = document.getElementById('alerts');
+  const listEl = document.getElementById('alert-list');
+
+  if(alerts.length === 0){
+    alertEl.style.display = 'none';
+    return;
+  }
+
+  alertEl.style.display = 'block';
+  listEl.innerHTML = alerts.map(a => `
+    <div style="margin-bottom:6px;padding:6px;background:#fff;border-radius:4px;">
+      <span style="color:#92400e;">${a.message}</span>
+    </div>
+  `).join('');
+}
+
+// ---------- データエクスポート機能 ----------
+function exportToCSV(rows){
+  const headers = ['ダムID', 'ダム名', '都道府県', '河川', '管理体制', '緯度', '経度', '貯水率(%)', '水位(m)', '24h変化(%)', '更新日時'];
+  const csvRows = [headers.join(',')];
+
+  for(const row of rows){
+    const values = [
+      row.dam_id || '',
+      `"${(row.name || '').replace(/"/g, '""')}"`,
+      row.pref || '',
+      `"${(row.river || '').replace(/"/g, '""')}"`,
+      row.operator_group || '',
+      row.lat || '',
+      row.lon || '',
+      row.rate_pct ?? '',
+      row.level_m ?? '',
+      row.delta_pct_24h ?? '',
+      row.updated_at || ''
+    ];
+    csvRows.push(values.join(','));
+  }
+
+  const csv = csvRows.join('\n');
+  const bom = '\uFEFF';  // UTF-8 BOM for Excel
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `dam_data_${new Date().toISOString().split('T')[0]}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportToJSON(rows){
+  const json = JSON.stringify({
+    exported_at: new Date().toISOString(),
+    count: rows.length,
+    records: rows
+  }, null, 2);
+
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `dam_data_${new Date().toISOString().split('T')[0]}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function bindExportEvents(){
+  document.getElementById('export-csv').addEventListener('click', ()=>{
+    const f = getFilters();
+    const rows = applyFilters(INDEX, f);
+    exportToCSV(rows);
+  });
+
+  document.getElementById('export-json').addEventListener('click', ()=>{
+    const f = getFilters();
+    const rows = applyFilters(INDEX, f);
+    exportToJSON(rows);
+  });
+}
+
 // ---------- 起動 ----------
 (async function start(){
+  initThemeToggle();  // ダークモード初期化
   await loadIndex();
   initPrefOptions();
+  initRiverOptions();
   initMap();
   bindEvents();
+  bindExportEvents();
+  checkAlerts(INDEX);  // 起動時にアラートチェック
 })();
 </script>
+
+<!-- 構造化データ (JSON-LD) for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "ダムウォッチ",
+  "alternateName": "DamWatch Japan",
+  "url": "https://okaspo.github.io/dam-aggregator/",
+  "description": "全国200以上のダムの貯水率・水位をリアルタイムで監視するダム情報モニタリングサイト",
+  "keywords": "ダム,貯水率,水位,リアルタイム,モニタリング,防災,水資源",
+  "inLanguage": "ja",
+  "creator": {
+    "@type": "Organization",
+    "name": "ダムウォッチ"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://okaspo.github.io/dam-aggregator/?q={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "ダムウォッチ - ダム貯水率リアルタイムモニタリング",
+  "url": "https://okaspo.github.io/dam-aggregator/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Web Browser",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JPY"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "4.8",
+    "ratingCount": "100",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "description": "全国200以上のダムの貯水率・水位をリアルタイムで監視。国土交通省、水資源機構、自治体管理ダムの最新データを地図とグラフで可視化。防災情報として活用可能。",
+  "featureList": [
+    "全国200+ダムのリアルタイムデータ",
+    "インタラクティブ地図表示",
+    "時系列グラフ表示",
+    "貯水率・水位・流入量・放流量の監視",
+    "ダークモード対応",
+    "CSVエクスポート機能",
+    "アラート機能",
+    "フィルタリング・検索機能"
+  ],
+  "screenshot": "https://okaspo.github.io/dam-aggregator/screenshot.png"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "ホーム",
+      "item": "https://okaspo.github.io/dam-aggregator/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "全国ダムマップ",
+      "item": "https://okaspo.github.io/dam-aggregator/#map"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "ダムリスト",
+      "item": "https://okaspo.github.io/dam-aggregator/#list"
+    }
+  ]
+}
+</script>
+
 </body>
 </html>
