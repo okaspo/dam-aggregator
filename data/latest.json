@@ -1,49 +1,5 @@
 {
-  "fetched_at": "2025-12-03T10:25:55.857988+09:00",
-  "records": [
-    {
-      "dam_id": "miyagi_okura",
-      "name": "大倉ダム",
-      "pref": "MIYAGI",
-      "operator_group": "自治体",
-      "lat": 38.34,
-      "lon": 140.67,
-      "observed_at": "2025-08-23T06:00:00+09:00",
-      "rate_pct": 72.4,
-      "level_m": 255.13
-    },
-    {
-      "dam_id": "miyagi_okura",
-      "name": "大倉ダム",
-      "pref": "MIYAGI",
-      "operator_group": "自治体",
-      "lat": 38.34,
-      "lon": 140.67,
-      "observed_at": "2025-08-23T12:00:00+09:00",
-      "rate_pct": 72.1,
-      "level_m": 255.02
-    },
-    {
-      "dam_id": "miyagi_shichik",
-      "name": "七北田ダム",
-      "pref": "MIYAGI",
-      "operator_group": "自治体",
-      "lat": 38.39,
-      "lon": 140.74,
-      "observed_at": "2025-08-23T06:00:00+09:00",
-      "rate_pct": 65.0,
-      "level_m": 245.8
-    },
-    {
-      "dam_id": "miyagi_shichik",
-      "name": "七北田ダム",
-      "pref": "MIYAGI",
-      "operator_group": "自治体",
-      "lat": 38.39,
-      "lon": 140.74,
-      "observed_at": "2025-08-23T12:00:00+09:00",
-      "rate_pct": 64.8,
-      "level_m": 245.7
-    }
-  ]
+  "fetched_at": "2025-12-03T10:29:34.819374+09:00",
+  "source": "国土交通省 川の防災情報",
+  "records": []
 }
