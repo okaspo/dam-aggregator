@@ -121,6 +121,13 @@ def main():
     print("=" * 60)
     print("全国のダムデータを取得中...")
     print("=" * 60)
+
+    # ScrapingBee使用状況を表示
+    import os
+    if os.environ.get('SCRAPINGBEE_API_KEY'):
+        print("✓ ScrapingBee経由でアクセスします（IP制限回避モード）")
+    else:
+        print("⚠ 直接アクセスモード（IP制限の影響を受ける可能性があります）")
     print()
 
     # メタデータファイルを先に生成

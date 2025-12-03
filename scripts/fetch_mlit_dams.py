@@ -6,6 +6,7 @@ http://www1.river.go.jp/cgi-bin/DspDamData.exe?ID=[観測所記号]&KIND=3
 import json
 import pathlib
 import time
+import os
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional
 import urllib.request
@@ -249,15 +250,35 @@ def fetch_dam_data(station_id: str, timeout: int = 30) -> Optional[Dict]:
     """
     url = f"http://www1.river.go.jp/cgi-bin/DspDamData.exe?ID={station_id}&KIND=3"
 
-    try:
-        # User-Agentヘッダーを追加してブラウザからのアクセスに見せかける
-        headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-        }
-        req = urllib.request.Request(url, headers=headers)
+    # ScrapingBee APIキーが設定されている場合はプロキシ経由でアクセス
+    scrapingbee_api_key = os.environ.get('SCRAPINGBEE_API_KEY')
 
-        with urllib.request.urlopen(req, timeout=timeout) as response:
-            html = response.read().decode('shift_jis', errors='ignore')
+    try:
+        if scrapingbee_api_key:
+            # ScrapingBee経由でアクセス（IP制限回避）
+            import urllib.parse
+            scrapingbee_url = 'https://app.scrapingbee.com/api/v1/'
+            params = {
+                'api_key': scrapingbee_api_key,
+                'url': url,
+                'render_js': 'false',
+                'premium_proxy': 'true',
+                'country_code': 'jp'
+            }
+            scrapingbee_request_url = f"{scrapingbee_url}?{urllib.parse.urlencode(params)}"
+
+            req = urllib.request.Request(scrapingbee_request_url)
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                html = response.read().decode('shift_jis', errors='ignore')
+        else:
+            # 直接アクセス（従来の方法）
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+            req = urllib.request.Request(url, headers=headers)
+
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                html = response.read().decode('shift_jis', errors='ignore')
 
         parser = DamDataParser()
         parser.feed(html)

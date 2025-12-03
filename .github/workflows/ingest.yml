@@ -23,6 +23,8 @@ jobs:
 
       # 全国のダムデータ取得
       - name: Fetch all dams
+        env:
+          SCRAPINGBEE_API_KEY: ${{ secrets.SCRAPINGBEE_API_KEY }}
         run: python scripts/fetch_all_dams.py
 
       - name: Append history
