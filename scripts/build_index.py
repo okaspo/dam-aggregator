@@ -36,6 +36,7 @@ def build_index():
             "dam_id": dam_id,
             "name": r["name"],
             "pref": r["pref"],
+            "river": r.get("river", ""),
             "operator_group": r["operator_group"],
             "lat": r["lat"], "lon": r["lon"],
             "rate_pct": r.get("rate_pct"),
