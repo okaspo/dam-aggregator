@@ -923,7 +923,7 @@ function initMap(){
       type:'circle',
       source:'dams',
       paint:{
-        'circle-radius': 5,
+        'circle-radius': 8,
         'circle-color': ['case',
           ['has','rate'],
           ['interpolate',['linear'], ['get','rate'],
@@ -931,7 +931,9 @@ function initMap(){
           ],
           '#9ca3af'
         ],
-        'circle-stroke-color':'#334155','circle-stroke-width': 0.5
+        'circle-stroke-color':'#ffffff',
+        'circle-stroke-width': 2,
+        'circle-opacity': 0.9
       }
     });
     map.on('moveend', ()=>{
@@ -946,6 +948,10 @@ function initMap(){
     const f = e.features[0];
     openDetail(f.properties.dam_id, f.properties.name);
   });
+
+  // カーソルをポインターに変更
+  map.on('mouseenter','dams-circle', ()=>{ map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave','dams-circle', ()=>{ map.getCanvas().style.cursor = ''; });
 }
 
 function updateMapMarkers(rows){
